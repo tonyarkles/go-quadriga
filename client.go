@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -51,6 +52,24 @@ func (c *Client) GetOrderBook() (OrderBook, error) {
 	var orders OrderBook
 
 	body, err := c.get(c.URL("order_book"))
+	if err != nil {
+		return orders, err
+	}
+	err = json.Unmarshal(body, &orders)
+	return orders, err
+}
+
+func (c *Client) GetSpecificOrderBook(book string) (OrderBook, error) {
+	var orders OrderBook
+
+	orderBookUrl, err := url.Parse(c.URL("order_book"))
+	if err != nil {
+		return orders, err
+	}
+	vals := &url.Values{}
+	vals.Add("book", book)
+	orderBookUrl.RawQuery = vals.Encode()
+	body, err := c.get(orderBookUrl.String())
 	if err != nil {
 		return orders, err
 	}
